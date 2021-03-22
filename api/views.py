@@ -1,9 +1,8 @@
+from .serializers import CommentSerializer, ReviewSerializer
+from api.models import Review, Title
+from api.models import Review, Title, User
 from rest_framework import viewsets
 from rest_framework.generics import get_object_or_404
-
-from api.models import Review, Title, User
-
-from .serializers import CommentSerializer, ReviewSerializer
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -18,7 +17,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         """Сохранение отзыва в бд. """
         serializer.save(
-            author=User.objects.get(pk=1),
+            author=self.request.user,
             title_id=self.kwargs.get('title_id'))
 
 

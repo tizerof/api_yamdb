@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.db.models.deletion import CASCADE
 
 User = get_user_model()
 
@@ -16,4 +17,14 @@ class Review(models.Model):
     author = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='reviews')
     score = models.IntegerField(default=0, null=True, blank=True)
+    pub_date = models.DateField(auto_now_add=True)
+
+
+class Comment(models.Model):
+    """Модель комментариев к отзывам. """
+    review = models.ForeignKey(
+        Review, on_delete=CASCADE, related_name='comments')
+    text = models.TextField()
+    author = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='comments')
     pub_date = models.DateField(auto_now_add=True)

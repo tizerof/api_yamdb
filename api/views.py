@@ -1,6 +1,5 @@
 from .serializers import CommentSerializer, ReviewSerializer
 from api.models import Review, Title
-from api.models import Review, Title, User
 from rest_framework import viewsets
 from rest_framework.generics import get_object_or_404
 

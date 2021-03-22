@@ -11,12 +11,13 @@ class Title(models.Model):
 
 class Review(models.Model):
     """Модель отзывов. """
+    CHOICES = ((i, i) for i in range(1, 11))
     text = models.TextField()
     title = models.ForeignKey(
         Title, on_delete=models.CASCADE, related_name='reviews')
     author = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='reviews')
-    score = models.IntegerField(default=0, null=True, blank=True)
+    score = models.IntegerField(choices=CHOICES)
     pub_date = models.DateField(auto_now_add=True)
 
 

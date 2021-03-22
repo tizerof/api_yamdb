@@ -2,25 +2,26 @@ import uuid
 
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
-from rest_framework import status
+from django.db import IntegrityError
+from django.core.mail import send_mail
+
+from rest_framework import status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from django.db import IntegrityError
-from django.core.mail import send_mail
-
-from .models import Users, UserConfirmation
+from .models import Profile, UserConfirmation
+from .serializer import ProfileSerializer
 
 
-class EmailApiView(APIView):
+class EmailConfirmApiView(APIView):
     permission_classes = [AllowAny, ]
 
     def post(self, request):
         """
         Получает email, а в ответ создаёт и записывает в базу
-        код подтверждения, который отправляется тебе на почту.
+        код подтверждения, и отправляет его пользователю на почту.
         """
         Email = request.data['email']
         token = str(uuid.uuid4())
@@ -56,14 +57,30 @@ class SendJWTApiView(APIView):
             return Response('Неверный код подтверждения',
                             status=status.HTTP_403_FORBIDDEN)
 
+        """создаём объект пользователя"""
         user = User.objects.create_user(Email)
         user.email = Email
         user.password = confirmation_code
         user.save()
 
+        """создаём профиль пользователя"""
+        Profile.objects.create(username=Email,
+                               email=Email)
+
         refresh = RefreshToken.for_user(user)
 
         return Response({
-            'refresh': str(refresh),
             'access': str(refresh.access_token),
         })
+
+
+class UsersModelViewSet(viewsets.ModelViewSet):
+    queryset = Profile.objects.all()
+    serializer_class = ProfileSerializer
+
+
+'''
+Нужно всё делать с кастомной моделью, не трогать стандартную. 
+Переделай регистрацию, чтобы на вход принимались все поля кастомной модели
+
+'''

@@ -21,7 +21,7 @@ class UserSerializer(serializers.ModelSerializer):
     username = serializers.CharField(default='dafault')
 
     def is_valid(self, raise_exception=False):
-        email = self.context['request'].data['email']
+        email = self.context['request'].POST.get('email')
         UserOBJ = get_object_or_404(UserConfirmation, email=email)
         confirmation_code = self.context['request'].data['confirmation_code']
         if UserOBJ.confirmation_code != confirmation_code:

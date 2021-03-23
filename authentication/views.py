@@ -65,7 +65,7 @@ class sendJWTModelViewSet(mixins.CreateModelMixin,
 
     def perform_create(self, serializer):
         Email = self.request.POST.get('email')
-        confirmation_code = self.request.data['confirmation_code']
+        confirmation_code = self.request.POST.get('confirmation_code')
         serializer.save(password=confirmation_code,
                         username=Email)
 

@@ -3,17 +3,18 @@ import uuid
 from django.shortcuts import get_object_or_404
 from django.core.mail import send_mail
 
-from rest_framework import viewsets, mixins
+from rest_framework import viewsets, mixins, filters
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.viewsets import GenericViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import UserConfirmation, User
-from .serializer import UserSerializer, UserConfirmationSerializer
+from .serializer import UserSerializer, UserConfirmationSerializer, UsersSerializer
 
 
-class EmailConfirmationViewSet(viewsets.ModelViewSet):
+class EmailConfirmationViewSet(mixins.CreateModelMixin,
+                               GenericViewSet):
     """
     Получает на вход email в body,
     сериализуент объект, генерирует код подтверждения,
@@ -45,7 +46,7 @@ class EmailConfirmationViewSet(viewsets.ModelViewSet):
 class sendJWTModelViewSet(mixins.CreateModelMixin,
                           GenericViewSet):
     """
-    Получает на вход email и confirmation_code в body
+    Получает на вход email и confirmation_code в body,
     сериализует объект, проверяет валидность кода,
     создаёт пользователя, возвращает токен пользователя
     """
@@ -72,4 +73,10 @@ class sendJWTModelViewSet(mixins.CreateModelMixin,
 
 class UsersModelViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = UsersSerializer
+    permission_classes = [IsAdminUser, ]
+    filter_backends = [filters.SearchFilter]
+    search_fields = "username"
+
+    def perform_create(self, serializer):
+        serializer.save(password=str(uuid.uuid4()))

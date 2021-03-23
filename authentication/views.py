@@ -23,14 +23,15 @@ class EmailConfirmApiView(APIView):
         Получает email, а в ответ создаёт и записывает в базу
         код подтверждения, и отправляет его пользователю на почту.
         """
-        Email = request.data['email']
+        Email = request.POST.get('email')
+
         confirmation_code = str(uuid.uuid4())
         try:
             UserConfirmation.objects.create(email=Email,
                                             confirmation_code=confirmation_code)
         except IntegrityError:
-            return Response('Почта уже зарегистрирована',
-                            status=status.HTTP_403_FORBIDDEN)
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
         send_mail(
             'authentication',
             f'{confirmation_code}',
@@ -43,6 +44,11 @@ class EmailConfirmApiView(APIView):
 
 class sendJWTModelViewSet(mixins.CreateModelMixin,
                           GenericViewSet):
+    """
+    Получает на вход email и confirmation_code в body
+    сериализует объект, проверяет валидность кода,
+    создаёт пользователя, возвращает токен пользователя
+    """
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [AllowAny, ]
@@ -51,20 +57,18 @@ class sendJWTModelViewSet(mixins.CreateModelMixin,
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
-        user = get_object_or_404(User, email=request.data['email'])
+        user = get_object_or_404(User, email=request.POST.get('email'))
         refresh = RefreshToken.for_user(user)
         return Response({
             'access': str(refresh.access_token),
         })
 
     def perform_create(self, serializer):
-        Email = self.request.data['email']
+        Email = self.request.POST.get('email')
+        Username = Email.split('@')[0]
         confirmation_code = self.request.data['confirmation_code']
-        UserObj = get_object_or_404(UserConfirmation, email=Email)
-        if UserObj.confirmation_code != confirmation_code:
-            return Response('Неверный код подтверждения',
-                            status=status.HTTP_403_FORBIDDEN)
-        serializer.save(password=confirmation_code)
+        serializer.save(password=confirmation_code,
+                        username=Username)
 
 
 class UsersModelViewSet(viewsets.ModelViewSet):

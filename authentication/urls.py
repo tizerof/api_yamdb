@@ -1,6 +1,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import EmailConfirmApiView, sendJWTModelViewSet, UsersModelViewSet
+from .views import (sendJWTModelViewSet, UsersModelViewSet,
+                    EmailConfirmationViewSet)
 
 v1_router = DefaultRouter()
 
@@ -14,7 +15,11 @@ v1_router.register(
     sendJWTModelViewSet,
 )
 
+v1_router.register(
+    r'auth/email',
+    EmailConfirmationViewSet,
+)
+
 urlpatterns = [
-    path('v1/auth/email/', EmailConfirmApiView.as_view()),
     path('v1/', include(v1_router.urls))
 ]

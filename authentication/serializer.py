@@ -5,9 +5,16 @@ from rest_framework.exceptions import ValidationError
 from .models import UserConfirmation, User
 
 
-class UserSerializer(serializers.ModelSerializer):
+class UserConfirmationSerializer(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
+        model = UserConfirmation
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = ('username', 'password', 'role', 'email',
+                  'bio', 'first_name', 'last_name')
         model = User
 
     password = serializers.CharField(default='default')

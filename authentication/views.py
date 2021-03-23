@@ -48,7 +48,7 @@ class sendJWTModelViewSet(mixins.CreateModelMixin,
     permission_classes = [AllowAny, ]
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data, context={'request': request})
+        serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         user = get_object_or_404(User, email=request.data['email'])
@@ -58,7 +58,6 @@ class sendJWTModelViewSet(mixins.CreateModelMixin,
         })
 
     def perform_create(self, serializer):
-        #нужно переместить проверку в сериалайзер
         Email = self.request.data['email']
         confirmation_code = self.request.data['confirmation_code']
         UserObj = get_object_or_404(UserConfirmation, email=Email)

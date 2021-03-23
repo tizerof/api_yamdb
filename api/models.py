@@ -20,6 +20,9 @@ class Review(models.Model):
     score = models.IntegerField(choices=CHOICES)
     pub_date = models.DateField(auto_now_add=True)
 
+    class Meta:
+        ordering = ('-pub_date', 'author',)
+
 
 class Comment(models.Model):
     """Модель комментариев к отзывам. """
@@ -29,3 +32,6 @@ class Comment(models.Model):
     author = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='comments')
     pub_date = models.DateField(auto_now_add=True)
+
+    class Meta:
+        ordering = ('-pub_date', 'author',)

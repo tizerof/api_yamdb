@@ -9,15 +9,10 @@ class User(AbstractUser):
         MODERATOR = 'moderator', _('moderator')
         ADMIN = 'admin', _('admin')
 
+
+    email = models.EmailField(unique=True, blank=False, null=False)
     role = models.CharField(max_length=100, choices=Roles.choices, default=Roles.USER)
     bio = models.TextField(max_length=3000, blank=True, null=True)
-
-    def is_upperclass(self):
-        return self.role in {
-            self.Roles.USER,
-            self.Roles.MODEgitRATOR,
-            self.Roles.ADMIN,
-        }
 
 
 class UserConfirmation(models.Model):

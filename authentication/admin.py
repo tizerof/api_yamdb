@@ -9,7 +9,7 @@ class UserConfirmationAdmin(admin.ModelAdmin):
 
 class UserAdmin(admin.ModelAdmin):
     list_display = ('id', 'username', 'email', 'role',
-                    'bio', 'first_name', 'last_name')
+                    'bio', 'first_name', 'last_name', 'is_staff')
 
 
 admin.site.register(UserConfirmation, UserConfirmationAdmin)

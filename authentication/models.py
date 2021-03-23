@@ -14,4 +14,4 @@ class User(AbstractUser):
 
 class UserConfirmation(models.Model):
     email = models.EmailField(max_length=254, blank=False, null=False, unique=True)
-    confirmation_code = models.CharField(max_length=1000, blank=False, null=False)
+    confirmation_code = models.CharField(max_length=1000, blank=True, null=True)

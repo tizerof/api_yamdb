@@ -3,6 +3,7 @@ from rest_framework.routers import DefaultRouter
 from .views import (sendJWTModelViewSet, UsersModelViewSet,
                     EmailConfirmationViewSet)
 
+
 v1_router = DefaultRouter()
 
 v1_router.register(

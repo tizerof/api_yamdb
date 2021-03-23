@@ -1,16 +1,16 @@
 from django.contrib import admin
 
-from .models import UserConfirmation, Profile
+from .models import UserConfirmation, User
 
 
 class UserConfirmationAdmin(admin.ModelAdmin):
     list_display = ('email', 'confirmation_code')
 
 
-class ProfileAdmin(admin.ModelAdmin):
+class UserAdmin(admin.ModelAdmin):
     list_display = ('id', 'username', 'email', 'role',
                     'bio', 'first_name', 'last_name')
 
 
 admin.site.register(UserConfirmation, UserConfirmationAdmin)
-admin.site.register(Profile, ProfileAdmin)
+admin.site.register(User, UserAdmin)

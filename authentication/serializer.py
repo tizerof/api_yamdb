@@ -1,9 +1,11 @@
 from rest_framework import serializers
 
-from .models import Profile
+from .models import User
 
 
-class ProfileSerializer(serializers.ModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(default='default')
+
     class Meta:
         fields = '__all__'
-        model = Profile
+        model = User

@@ -10,7 +10,9 @@ from rest_framework.viewsets import GenericViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import UserConfirmation, User
-from .serializer import UserSerializer, UserConfirmationSerializer, UsersSerializer
+from .permissions import IsAdminOrReadOnly
+from .serializer import UserSerializer, UserConfirmationSerializer, UsersSerializer, SpecificUserSerializer
+
 
 
 class EmailConfirmationViewSet(mixins.CreateModelMixin,
@@ -43,8 +45,8 @@ class EmailConfirmationViewSet(mixins.CreateModelMixin,
         )
 
 
-class sendJWTModelViewSet(mixins.CreateModelMixin,
-                          GenericViewSet):
+class sendJWTViewSet(mixins.CreateModelMixin,
+                     GenericViewSet):
     """
     Получает на вход email и confirmation_code в body,
     сериализует объект, проверяет валидность кода,
@@ -65,13 +67,15 @@ class sendJWTModelViewSet(mixins.CreateModelMixin,
         })
 
     def perform_create(self, serializer):
-        Email = self.request.POST.get('email')
         confirmation_code = self.request.POST.get('confirmation_code')
-        serializer.save(password=confirmation_code,
-                        username=Email)
+        serializer.save(password=confirmation_code)
 
 
-class UsersModelViewSet(viewsets.ModelViewSet):
+class UsersViewSet(viewsets.ModelViewSet):
+    """
+    Возвразщает список всех пользователей,
+    создаёт нового пользователя
+    """
     queryset = User.objects.all()
     serializer_class = UsersSerializer
     permission_classes = [IsAdminUser, ]
@@ -80,3 +84,16 @@ class UsersModelViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(password=str(uuid.uuid4()))
+
+
+
+class SpecificUserViewSet(viewsets.ModelViewSet):
+    serializer_class = SpecificUserSerializer
+    permission_classes = [IsAdminOrReadOnly, ]
+    http_method_names = ('delete', 'get', 'patch')
+    lookup_field = 'username'
+    pagination_class = None
+
+    def get_queryset(self):
+        user = User.objects.filter(username=self.kwargs.get('username'))
+        return user

@@ -1,8 +1,7 @@
-from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models.deletion import CASCADE
 
-User = get_user_model()
+from authentication.models import User
 
 
 class Title(models.Model):

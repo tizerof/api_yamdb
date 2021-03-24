@@ -1,3 +1,4 @@
+import re
 import uuid
 
 from django.shortcuts import get_object_or_404
@@ -67,8 +68,11 @@ class sendJWTViewSet(mixins.CreateModelMixin,
         })
 
     def perform_create(self, serializer):
+        email = self.request.POST.get('email')
+        default_username = re.sub('[@.!?#]', '', email)
         confirmation_code = self.request.POST.get('confirmation_code')
-        serializer.save(password=confirmation_code)
+        serializer.save(password=confirmation_code,
+                        username=default_username)
 
 
 class UsersViewSet(viewsets.ModelViewSet):

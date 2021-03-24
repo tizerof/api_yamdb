@@ -53,3 +53,4 @@ class UserAPIViewSerializer(serializers.ModelSerializer):
         fields = ('first_name', 'last_name', 'username',
                   'bio', 'email', 'role')
         model = User
+

@@ -46,3 +46,4 @@ class SpecificUserSerializer(serializers.ModelSerializer):
         fields = ('first_name', 'last_name', 'username',
                   'bio', 'email', 'role', 'is_staff')
         model = User
+

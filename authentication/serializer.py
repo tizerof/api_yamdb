@@ -18,7 +18,6 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
 
     password = serializers.CharField(default='default')
-    username = serializers.CharField(default='default')
 
     def is_valid(self, raise_exception=False):
         email = self.context['request'].POST.get('email')

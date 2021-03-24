@@ -1,5 +1,5 @@
 from django.urls import path, include
-from rest_framework.routers import DefaultRouter, Route, SimpleRouter, DynamicRoute
+from rest_framework.routers import DefaultRouter, Route, SimpleRouter
 
 from .views import (sendJWTViewSet, UsersViewSet,
                     EmailConfirmationViewSet, SpecificUserViewSet, UserAPIView)
@@ -46,4 +46,4 @@ v1_user_router.register('users', SpecificUserViewSet,
 urlpatterns = [
     path('users/me/', UserAPIView.as_view()),
     path('', include(v1_user_router.urls)),
-    path('', include(v1_router.urls)),
+    path('', include(v1_router.urls)),]

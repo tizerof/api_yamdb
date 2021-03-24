@@ -12,6 +12,5 @@ urlpatterns = [
         name='redoc'
     ),
     path('upload-csv/', category_upload, name='category_upload'),
-    path('api/', include('authentication.urls')),
     path('api/', include('api.urls')),
 ]

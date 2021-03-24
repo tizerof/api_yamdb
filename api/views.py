@@ -1,14 +1,19 @@
 from rest_framework import viewsets
 from rest_framework.generics import get_object_or_404
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
 from api.models import Review, Title
 
 from .serializers import CommentSerializer, ReviewSerializer
+from .permissions import IsOwner, IsStaff
+
+PERMISSION_CLASSES = (IsAuthenticatedOrReadOnly, IsOwner, IsStaff)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
     """Класс взаимодействия с моделью Review. """
     serializer_class = ReviewSerializer
+    permission_classes = PERMISSION_CLASSES
 
     def get_queryset(self):
         """Получение списка отзывов. """
@@ -23,6 +28,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
+    permission_classes = PERMISSION_CLASSES
 
     def get_queryset(self):
         """Получение списка комментариев к отзыву. """

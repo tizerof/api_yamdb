@@ -15,6 +15,7 @@ from .permissions import IsAdminOrReadOnly
 from .serializer import UserSerializer, UserConfirmationSerializer, UsersSerializer, SpecificUserSerializer
 
 
+
 class EmailConfirmationViewSet(mixins.CreateModelMixin,
                                GenericViewSet):
     """
@@ -87,6 +88,7 @@ class UsersViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(password=str(uuid.uuid4()))
+
 
 
 class SpecificUserViewSet(viewsets.ModelViewSet):

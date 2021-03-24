@@ -18,6 +18,7 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
 
     password = serializers.CharField(default='default')
+    username = serializers.CharField(default='default')
 
     def is_valid(self, raise_exception=False):
         email = self.context['request'].POST.get('email')
@@ -44,5 +45,12 @@ class SpecificUserSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('first_name', 'last_name', 'username',
                   'bio', 'email', 'role', 'is_staff')
+        model = User
+
+
+class UserAPIViewSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = ('first_name', 'last_name', 'username',
+                  'bio', 'email', 'role')
         model = User
 

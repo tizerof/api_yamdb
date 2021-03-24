@@ -4,15 +4,18 @@ import uuid
 from django.shortcuts import get_object_or_404
 from django.core.mail import send_mail
 
-from rest_framework import viewsets, mixins, filters
+from rest_framework import viewsets, mixins, filters, status
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
+from rest_framework.views import APIView
+
 from rest_framework.viewsets import GenericViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import UserConfirmation, User
-from .permissions import IsAdminOrUserHimself, IsAdmin
-from .serializer import UserSerializer, UserConfirmationSerializer, UsersSerializer, SpecificUserSerializer
+from .permissions import IsAdmin, IsAuthenticate
+from .serializer import UserSerializer, UserConfirmationSerializer, UsersSerializer, SpecificUserSerializer, \
+    UserAPIViewSerializer
 
 
 class EmailConfirmationViewSet(mixins.CreateModelMixin,
@@ -94,15 +97,32 @@ class SpecificUserViewSet(viewsets.ModelViewSet):
     Возвращает данные одного пользователя по username,
     позводяет менять его поля [PATCH] или удалить объект
     """
+    queryset = User.objects.all()
     serializer_class = SpecificUserSerializer
-    permission_classes = [IsAdminOrUserHimself, ]
+    permission_classes = [IsAdmin, ]
     http_method_names = ('delete', 'get', 'patch')
     lookup_field = 'username'
     pagination_class = None
 
-    def get_queryset(self):
-        username = self.kwargs.get('username')
-        if username == 'me':
-            return User.objects.filter(username=self.request.user.username)
-        user = User.objects.filter(username=self.kwargs.get('username'))
-        return user
+
+class UserAPIView(APIView):
+    permission_classes = [IsAuthenticate]
+
+    def get(self, request):
+        username = request.user.username
+        UserObj = User.objects.get(username=username)
+        serializer = UserAPIViewSerializer(UserObj)
+        return Response(serializer.data)
+
+    def patch(self, request):
+        username = request.user.username
+        UserObj = User.objects.get(username=username)
+        serializer = UserAPIViewSerializer(UserObj,
+                                           data=request.data,
+                                           partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data,
+                            status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+

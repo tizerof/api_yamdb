@@ -2,7 +2,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter, Route, SimpleRouter, DynamicRoute
 
 from .views import (sendJWTViewSet, UsersViewSet,
-                    EmailConfirmationViewSet, SpecificUserViewSet)
+                    EmailConfirmationViewSet, SpecificUserViewSet, UserAPIView)
 
 
 class CustomUserRouter(SimpleRouter):
@@ -14,12 +14,6 @@ class CustomUserRouter(SimpleRouter):
                 'delete': 'destroy',
                 'patch': 'partial_update',
             },
-            name='{basename}-list',
-            detail=False,
-            initkwargs={'suffix': 'List'}
-        ),
-        DynamicRoute(
-            url=r'^{prefix}/{url_path}{trailing_slash}$',
             name='{basename}-list',
             detail=False,
             initkwargs={'suffix': 'List'}
@@ -50,6 +44,7 @@ v1_user_router.register('users', SpecificUserViewSet,
                         basename='users')
 
 urlpatterns = [
+    path('v1/users/me/', UserAPIView.as_view()),
     path('v1/', include(v1_user_router.urls)),
     path('v1/', include(v1_router.urls)),
 ]

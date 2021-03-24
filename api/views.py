@@ -4,10 +4,10 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
 from api.models import Review, Title
 
+from .permissions import IsAdmin, IsModerator, IsOwner
 from .serializers import CommentSerializer, ReviewSerializer
-from .permissions import IsOwner, IsStaff
 
-PERMISSION_CLASSES = (IsAuthenticatedOrReadOnly, IsOwner, IsStaff)
+PERMISSION_CLASSES = (IsAuthenticatedOrReadOnly, IsOwner, IsAdmin, IsModerator)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):

@@ -1,4 +1,6 @@
-from rest_framework.permissions import BasePermission, SAFE_METHODS
+from rest_framework.permissions import SAFE_METHODS, BasePermission
+
+from authentication.models import User
 
 
 class IsActiveUserPermission(BasePermission):
@@ -13,10 +15,16 @@ class IsActiveUserPermission(BasePermission):
 class IsOwner(IsActiveUserPermission):
 
     def has_object_permission(self, request, view, obj):
-        return obj.user == request.user
+        return obj.author == request.user
 
 
-class IsStaff(IsActiveUserPermission):
+class IsAdmin(IsActiveUserPermission):
 
     def has_object_permission(self, request, view, obj):
-        return request.user.is_staff
+        return request.user.is_staff or request.user.role == User.Roles.ADMIN
+
+
+class IsModerator(IsActiveUserPermission):
+    def has_object_permission(self, request, view, obj):
+        return (request.user.is_staff
+                or request.user.role == User.Roles.MODERATOR)

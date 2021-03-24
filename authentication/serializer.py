@@ -18,7 +18,6 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
 
     password = serializers.CharField(default='default')
-    username = serializers.CharField(default='default')
 
     def is_valid(self, raise_exception=False):
         email = self.context['request'].POST.get('email')
@@ -35,7 +34,14 @@ class UserSerializer(serializers.ModelSerializer):
 class UsersSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('username', 'password', 'role', 'email',
-                  'bio', 'first_name', 'last_name')
+                  'bio', 'first_name', 'last_name', 'is_staff')
         model = User
 
     password = serializers.CharField(default='default')
+
+
+class SpecificUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = ('first_name', 'last_name', 'username',
+                  'bio', 'email', 'role', 'is_staff')
+        model = User

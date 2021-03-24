@@ -6,14 +6,13 @@ from django.core.mail import send_mail
 
 from rest_framework import viewsets, mixins, filters
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny, IsAdminUser
+from rest_framework.permissions import AllowAny
 from rest_framework.viewsets import GenericViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import UserConfirmation, User
-from .permissions import IsAdminOrReadOnly
+from .permissions import IsAdminOrUserHimself, IsAdmin
 from .serializer import UserSerializer, UserConfirmationSerializer, UsersSerializer, SpecificUserSerializer
-
 
 
 class EmailConfirmationViewSet(mixins.CreateModelMixin,
@@ -82,7 +81,7 @@ class UsersViewSet(viewsets.ModelViewSet):
     """
     queryset = User.objects.all()
     serializer_class = UsersSerializer
-    permission_classes = [IsAdminUser, ]
+    permission_classes = [IsAdmin, ]
     filter_backends = [filters.SearchFilter]
     search_fields = "username"
 
@@ -90,14 +89,20 @@ class UsersViewSet(viewsets.ModelViewSet):
         serializer.save(password=str(uuid.uuid4()))
 
 
-
 class SpecificUserViewSet(viewsets.ModelViewSet):
+    """
+    Возвращает данные одного пользователя по username,
+    позводяет менять его поля [PATCH] или удалить объект
+    """
     serializer_class = SpecificUserSerializer
-    permission_classes = [IsAdminOrReadOnly, ]
+    permission_classes = [IsAdminOrUserHimself, ]
     http_method_names = ('delete', 'get', 'patch')
     lookup_field = 'username'
     pagination_class = None
 
     def get_queryset(self):
+        username = self.kwargs.get('username')
+        if username == 'me':
+            return User.objects.filter(username=self.request.user.username)
         user = User.objects.filter(username=self.kwargs.get('username'))
         return user

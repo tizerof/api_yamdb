@@ -46,4 +46,6 @@ v1_user_router.register('users', SpecificUserViewSet,
 urlpatterns = [
     path('users/me/', UserAPIView.as_view()),
     path('', include(v1_user_router.urls)),
-    path('', include(v1_router.urls)),]
+    path('', include(v1_router.urls)),
+]
+

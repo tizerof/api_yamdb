@@ -3,6 +3,12 @@ from rest_framework.permissions import SAFE_METHODS, BasePermission
 from authentication.models import User
 
 
+class ReadOnly(BasePermission):
+
+    def has_permission(self, request, view):
+        return request.method in SAFE_METHODS
+
+
 class IsActiveUserPermission(BasePermission):
 
     def has_permission(self, request, view):

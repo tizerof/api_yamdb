@@ -11,7 +11,7 @@ class UserConfirmationSerializer(serializers.ModelSerializer):
         model = UserConfirmation
 
 
-class UserSerializer(serializers.ModelSerializer):
+class UserJWTSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('username', 'password', 'role', 'email',
                   'bio', 'first_name', 'last_name')
@@ -27,16 +27,16 @@ class UserSerializer(serializers.ModelSerializer):
         if UserOBJ.confirmation_code != confirmation_code:
             raise ValidationError('Код подтверждения неверен')
 
-        valid = super(UserSerializer, self
+        valid = super(UserJWTSerializer, self
                       ).is_valid(raise_exception=raise_exception)
         confirmation_code.delete()
         return valid
 
 
-class UsersSerializer(serializers.ModelSerializer):
+class UsersViewSetSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('username', 'password', 'role', 'email',
-                  'bio', 'first_name', 'last_name', 'is_staff')
+                  'bio', 'first_name', 'last_name', 'is_superuser')
         model = User
 
     password = serializers.CharField(default='default')
@@ -45,7 +45,7 @@ class UsersSerializer(serializers.ModelSerializer):
 class SpecificUserSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('first_name', 'last_name', 'username',
-                  'bio', 'email', 'role', 'is_staff')
+                  'bio', 'email', 'role', 'is_superuser')
         model = User
 
 

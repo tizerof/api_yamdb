@@ -5,6 +5,7 @@ from django.shortcuts import get_object_or_404
 from django.core.mail import send_mail
 
 from rest_framework import viewsets, mixins, filters, status
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
@@ -60,10 +61,31 @@ class sendJWTViewSet(mixins.CreateModelMixin,
     permission_classes = [AllowAny, ]
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        user = get_object_or_404(User, email=request.POST.get('email'))
+        request_email = request.POST.get('email')
+        request_code = request.POST.get('confirmation_code')
+
+        """ Если пользователь регистрируется впервые, создаем ему аккаунт """
+        try:
+            user = User.objects.get(email=request_email)
+        except User.DoesNotExist:
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            self.perform_create(serializer)
+            user = get_object_or_404(User, email=request_email)
+            refresh = RefreshToken.for_user(user)
+            return Response({
+                'access': str(refresh.access_token),
+            })
+
+        try:
+            confirm = UserConfirmation.objects.get(email=request_email)
+        except UserConfirmation.DoesNotExist:
+            raise ValidationError('Код подтверждения неверен')
+
+        if confirm.confirmation_code != request_code:
+            raise ValidationError('Код подтверждения неверен')
+
+        confirm.delete()
         refresh = RefreshToken.for_user(user)
         return Response({
             'access': str(refresh.access_token),
@@ -125,4 +147,3 @@ class UserAPIView(APIView):
             return Response(serializer.data,
                             status=status.HTTP_200_OK)
         return Response(status=status.HTTP_400_BAD_REQUEST)
-

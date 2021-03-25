@@ -26,7 +26,13 @@ class User(AbstractUser):
     role = models.CharField(max_length=100, choices=Roles.choices, default=Roles.USER)
     bio = models.TextField(max_length=3000, blank=True, null=True)
 
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username']
+
 
 class UserConfirmation(models.Model):
+    """
+    Хранит данные о подтверждении email
+    """
     email = models.EmailField(max_length=254, blank=False, null=False, unique=True)
     confirmation_code = models.CharField(max_length=1000, blank=True, null=True)

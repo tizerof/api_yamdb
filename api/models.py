@@ -40,7 +40,7 @@ class Title(models.Model):
         return self.name
 
 
-class Reviews(models.Model):
+class Review(models.Model):
     """Модель отзывов. """
     CHOICES = ((i, i) for i in range(1, 11))
     text = models.TextField()

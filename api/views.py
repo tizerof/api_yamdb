@@ -1,11 +1,12 @@
 from rest_framework import viewsets
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.pagination import PageNumberPagination
 
-from api.models import Review, Title
+from api.models import Review, Title, Category
 
 from .permissions import IsAdmin, IsModerator, IsOwner
-from .serializers import CommentSerializer, ReviewSerializer
+from .serializers import CommentSerializer, ReviewSerializer, CategorySerializer
 
 PERMISSION_CLASSES = (IsAuthenticatedOrReadOnly, IsOwner, IsAdmin, IsModerator)
 
@@ -39,3 +40,11 @@ class CommentViewSet(viewsets.ModelViewSet):
         """Сохранение комментария в бд. """
         review = get_object_or_404(Review, pk=self.kwargs.get('review_id'))
         serializer.save(author=self.request.user, review=review)
+
+
+class CategoryViewSet(viewsets.ModelViewSet):
+    queryset = Category.objects.all().order_by('name')
+    serializer_class = CategorySerializer
+    http_method_names = ['get', 'post', 'delete']
+    pagination_class = PageNumberPagination
+    permission_classes = (IsAuthenticatedOrReadOnly,)

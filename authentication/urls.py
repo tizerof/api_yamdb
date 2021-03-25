@@ -2,7 +2,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter, Route, SimpleRouter
 
 from .views import (sendJWTViewSet, UsersViewSet,
-                    EmailConfirmationViewSet, SpecificUserViewSet)
+                    EmailConfirmationViewSet, SpecificUserViewSet, UserAPIView)
 
 
 class CustomUserRouter(SimpleRouter):
@@ -13,12 +13,12 @@ class CustomUserRouter(SimpleRouter):
                 'get': 'retrieve',
                 'delete': 'destroy',
                 'patch': 'partial_update',
-
             },
             name='{basename}-list',
             detail=False,
             initkwargs={'suffix': 'List'}
-        )]
+        ),
+    ]
 
 
 v1_router = DefaultRouter()
@@ -39,10 +39,13 @@ v1_router.register(
     EmailConfirmationViewSet,
 )
 
+
 v1_user_router.register('users', SpecificUserViewSet,
                         basename='users')
 
 urlpatterns = [
-    path('v1/', include(v1_user_router.urls)),
-    path('v1/', include(v1_router.urls))
+    path('users/me/', UserAPIView.as_view()),
+    path('', include(v1_user_router.urls)),
+    path('', include(v1_router.urls)),
 ]
+

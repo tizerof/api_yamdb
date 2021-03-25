@@ -3,8 +3,8 @@ from rest_framework.routers import DefaultRouter
 
 from .views import CommentViewSet, ReviewViewSet, CategoryViewSet
 
-router = DefaultRouter()
 
+router = DefaultRouter()
 
 router.register(
     r'^titles/(?P<title_id>\d+)/reviews', ReviewViewSet, basename='review')
@@ -16,5 +16,6 @@ router.register(r'categories', CategoryViewSet, basename='category'
 
 
 urlpatterns = [
+    path('v1/', include('authentication.urls')),
     path('v1/', include(router.urls)),
 ]

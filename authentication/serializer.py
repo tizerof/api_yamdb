@@ -29,6 +29,7 @@ class UserSerializer(serializers.ModelSerializer):
 
         valid = super(UserSerializer, self
                       ).is_valid(raise_exception=raise_exception)
+        confirmation_code.delete()
         return valid
 
 

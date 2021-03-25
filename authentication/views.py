@@ -52,9 +52,10 @@ class EmailConfirmationViewSet(mixins.CreateModelMixin,
 class sendJWTViewSet(mixins.CreateModelMixin,
                      GenericViewSet):
     """
-    Получает на вход email и confirmation_code в body,
-    сериализует объект, проверяет валидность кода,
-    создаёт пользователя, возвращает токен пользователя
+    В случае если к почте пользователя не привязан ни один аккаунт,
+    создаёт новый, даёт токен для него и удаляет объект UserConfirmation.
+    Если аккаунт уже имеется, то проверяет confirmation_code и
+    обновляет токен для аккаунта, на который зарегистрирована почта.
     """
     queryset = User.objects.all()
     serializer_class = UserSerializer

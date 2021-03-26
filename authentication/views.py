@@ -9,14 +9,15 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
-
 from rest_framework.viewsets import GenericViewSet
+
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import UserConfirmation, User
 from .permissions import IsAdmin, IsAuthenticate
-from .serializer import UserSerializer, UserConfirmationSerializer, UsersSerializer, SpecificUserSerializer, \
-    UserAPIViewSerializer
+from .serializer import (UserJWTSerializer, UserConfirmationSerializer,
+                         UsersViewSetSerializer, SpecificUserSerializer,
+                         UserAPIViewSerializer)
 
 
 class EmailConfirmationViewSet(mixins.CreateModelMixin,
@@ -52,12 +53,13 @@ class EmailConfirmationViewSet(mixins.CreateModelMixin,
 class sendJWTViewSet(mixins.CreateModelMixin,
                      GenericViewSet):
     """
-    Получает на вход email и confirmation_code в body,
-    сериализует объект, проверяет валидность кода,
-    создаёт пользователя, возвращает токен пользователя
+    В случае если к почте пользователя не привязан ни один аккаунт,
+    создаёт новый, даёт токен для него и удаляет объект UserConfirmation.
+    Если аккаунт уже имеется, то проверяет confirmation_code и
+    обновляет токен для аккаунта, на который зарегистрирована почта.
     """
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = UserJWTSerializer
     permission_classes = [AllowAny, ]
 
     def create(self, request, *args, **kwargs):
@@ -105,7 +107,7 @@ class UsersViewSet(viewsets.ModelViewSet):
     создаёт нового пользователя
     """
     queryset = User.objects.all()
-    serializer_class = UsersSerializer
+    serializer_class = UsersViewSetSerializer
     permission_classes = [IsAdmin, ]
     filter_backends = [filters.SearchFilter]
     search_fields = "username"
@@ -117,7 +119,7 @@ class UsersViewSet(viewsets.ModelViewSet):
 class SpecificUserViewSet(viewsets.ModelViewSet):
     """
     Возвращает данные одного пользователя по username,
-    позводяет менять его поля [PATCH] или удалить объект
+    позволяет менять его поля [PATCH] или удалить объект
     """
     queryset = User.objects.all()
     serializer_class = SpecificUserSerializer
@@ -128,6 +130,10 @@ class SpecificUserViewSet(viewsets.ModelViewSet):
 
 
 class UserAPIView(APIView):
+    """
+    Возвращает данные аккаунта пользователя, сделавшего запрос
+    Позволяет менять данные своего аккаунта
+    """
     permission_classes = [IsAuthenticate]
 
     def get(self, request):

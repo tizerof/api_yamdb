@@ -1,16 +1,16 @@
 import os
 
 from django.db.models import Avg
-from rest_framework import serializers, viewsets
+from rest_framework import serializers, viewsets, exceptions
 from rest_framework.generics import get_object_or_404
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, AllowAny
 
 from api.models import Category, Genre, Review, Title
 
 from .filters import CategoryFilterSet, GenreFilterSet, TitleFilterSet
 from .permissions import (IsActiveUserPermission, IsAdmin, IsAdminOrReadOnly,
-                          IsModerator, IsOwner)
+                          IsModerator, IsOwner,)
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, ReviewSerializer, TitleSerializer)
 
@@ -71,7 +71,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     pagination_class = PageNumberPagination
     permission_classes = (IsAdminOrReadOnly,)
     filterset_class = TitleFilterSet
-
+    
     def prepare_category_and_genre(self):
         data = {}
         if self.request.data.get('category'):

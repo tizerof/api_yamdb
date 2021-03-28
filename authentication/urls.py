@@ -10,6 +10,7 @@ v1_router = DefaultRouter()
 v1_router.register(
     r'users',
     UsersViewSet,
+    basename='username'
 )
 
 v1_router.register(

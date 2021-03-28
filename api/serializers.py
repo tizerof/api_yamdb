@@ -44,17 +44,8 @@ class CategorySerializer(serializers.ModelSerializer):
     )
 
     def validate(self, data):
-        os.system('clear')
-        print('CATEGORY SERIALIZER IS BEING VALIDATED!!!1111')
-        print(data)
-        input()
-
         if 'slug' not in data:
             data['slug'] = re.sub(r'[\W_]+', '', data['name'])
-            os.system('clear')
-            print(data)
-            print(data['slug'])
-            input()
         return data
 
     class Meta:

@@ -14,16 +14,10 @@ from rest_framework.viewsets import GenericViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import UserConfirmation, User
-<<<<<<< HEAD
 from .permissions import IsAdmin
-from .serializer import UserSerializer, UserConfirmationSerializer, UsersSerializer, SpecificUserSerializer, \
-    UserAPIViewSerializer
-=======
-from .permissions import IsAdmin, IsAuthenticate
 from .serializer import (UserJWTSerializer, UserConfirmationSerializer,
                          UsersViewSetSerializer, SpecificUserSerializer,
                          UserAPIViewSerializer)
->>>>>>> 6a80df57dd8144e8d0b9d9fcd13a85a278de2670
 
 
 class EmailConfirmationViewSet(mixins.CreateModelMixin,
@@ -137,17 +131,10 @@ class SpecificUserViewSet(viewsets.ModelViewSet):
 
 class UserAPIView(APIView):
     """
-<<<<<<< HEAD
     Возвращает данные поста пользователя при запросе к /users/me/
     Позволяет менять данные своего профиля
     """
-    permission_classes = [IsAuthenticated]
-=======
-    Возвращает данные аккаунта пользователя, сделавшего запрос
-    Позволяет менять данные своего аккаунта
-    """
     permission_classes = [IsAuthenticate]
->>>>>>> 6a80df57dd8144e8d0b9d9fcd13a85a278de2670
 
     def get(self, request):
         username = request.user.username

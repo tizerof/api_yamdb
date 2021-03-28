@@ -26,7 +26,7 @@ class UserJWTSerializer(serializers.ModelSerializer):
 
         valid = super(UserJWTSerializer, self
                       ).is_valid(raise_exception=raise_exception)
-        confirmation_code.delete()
+        UserOBJ.delete()
         return valid
 
 

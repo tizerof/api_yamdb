@@ -11,14 +11,11 @@ class UserConfirmationSerializer(serializers.ModelSerializer):
         model = UserConfirmation
 
 
-class UserSerializer(serializers.ModelSerializer):
+class UserJWTSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('username', 'password', 'role', 'email',
                   'bio', 'first_name', 'last_name')
         model = User
-
-    password = serializers.CharField(default='default')
-    username = serializers.CharField(default='default')
 
     def is_valid(self, raise_exception=False):
         email = self.context['request'].POST.get('email')
@@ -27,30 +24,14 @@ class UserSerializer(serializers.ModelSerializer):
         if UserOBJ.confirmation_code != confirmation_code:
             raise ValidationError('Код подтверждения неверен')
 
-        valid = super(UserSerializer, self
+        valid = super(UserJWTSerializer, self
                       ).is_valid(raise_exception=raise_exception)
+        UserOBJ.delete()
         return valid
 
 
-class UsersSerializer(serializers.ModelSerializer):
+class UsersViewSetSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('username', 'password', 'role', 'email',
-                  'bio', 'first_name', 'last_name', 'is_staff')
+                  'bio', 'first_name', 'last_name', 'is_superuser')
         model = User
-
-    password = serializers.CharField(default='default')
-
-
-class SpecificUserSerializer(serializers.ModelSerializer):
-    class Meta:
-        fields = ('first_name', 'last_name', 'username',
-                  'bio', 'email', 'role', 'is_staff')
-        model = User
-
-
-class UserAPIViewSerializer(serializers.ModelSerializer):
-    class Meta:
-        fields = ('first_name', 'last_name', 'username',
-                  'bio', 'email', 'role')
-        model = User
-

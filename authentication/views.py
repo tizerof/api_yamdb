@@ -1,20 +1,20 @@
-import re
 import uuid
 
 from django.core.mail import send_mail
-from django.shortcuts import get_object_or_404
-from rest_framework import filters, mixins, status, viewsets
-from rest_framework.permissions import AllowAny
+
+from rest_framework import viewsets, mixins, filters
+from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
-from rest_framework.views import APIView
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
+
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .models import User, UserConfirmation
-from .permissions import IsAdmin, IsAuthenticate
-from .serializer import (SpecificUserSerializer, UserAPIViewSerializer,
-                         UserConfirmationSerializer, UserSerializer,
-                         UsersSerializer)
+from .models import UserConfirmation, User
+from .permissions import IsAdmin
+from .serializer import (UserJWTSerializer, UserConfirmationSerializer,
+                         UsersViewSetSerializer)
 
 
 class EmailConfirmationViewSet(mixins.CreateModelMixin,
@@ -50,78 +50,67 @@ class EmailConfirmationViewSet(mixins.CreateModelMixin,
 class sendJWTViewSet(mixins.CreateModelMixin,
                      GenericViewSet):
     """
-    Получает на вход email и confirmation_code в body,
-    сериализует объект, проверяет валидность кода,
-    создаёт пользователя, возвращает токен пользователя
+    В случае если к почте пользователя не привязан ни один аккаунт,
+    создаёт новый, даёт токен для него и удаляет объект UserConfirmation.
+    Если аккаунт уже имеется, то проверяет confirmation_code и
+    обновляет токен для аккаунта, на который зарегистрирована почта.
     """
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = UserJWTSerializer
     permission_classes = [AllowAny, ]
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        user = get_object_or_404(User, email=request.POST.get('email'))
+        request_email = request.POST.get('email')
+        request_code = request.POST.get('confirmation_code')
+
+        """ Если пользователь регистрируется впервые, создаем ему аккаунт """
+        try:
+            user = User.objects.get(email=request_email)
+        except User.DoesNotExist:
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            self.perform_create(serializer)
+            user = get_object_or_404(User, email=request_email)
+            refresh = RefreshToken.for_user(user)
+            return Response({
+                'access': str(refresh.access_token),
+            })
+
+        try:
+            confirm = UserConfirmation.objects.get(email=request_email)
+        except UserConfirmation.DoesNotExist:
+            raise ValidationError('Код подтверждения неверен')
+
+        if confirm.confirmation_code != request_code:
+            raise ValidationError('Код подтверждения неверен')
+
+        confirm.delete()
         refresh = RefreshToken.for_user(user)
         return Response({
             'access': str(refresh.access_token),
         })
 
-    def perform_create(self, serializer):
-        email = self.request.POST.get('email')
-        default_username = re.sub('[@.!?#]', '', email)
-        confirmation_code = self.request.POST.get('confirmation_code')
-        serializer.save(password=confirmation_code,
-                        username=default_username)
-
 
 class UsersViewSet(viewsets.ModelViewSet):
     """
-    Возвразщает список всех пользователей,
-    создаёт нового пользователя
+    ViewSet для работы с моделью User
     """
     queryset = User.objects.all()
-    serializer_class = UsersSerializer
+    serializer_class = UsersViewSetSerializer
     permission_classes = [IsAdmin, ]
     filter_backends = [filters.SearchFilter]
     search_fields = "username"
+    lookup_field = "username"
 
-    def perform_create(self, serializer):
-        serializer.save(password=str(uuid.uuid4()))
-
-
-class SpecificUserViewSet(viewsets.ModelViewSet):
-    """
-    Возвращает данные одного пользователя по username,
-    позводяет менять его поля [PATCH] или удалить объект
-    """
-    queryset = User.objects.all()
-    serializer_class = SpecificUserSerializer
-    permission_classes = [IsAdmin, ]
-    http_method_names = ('delete', 'get', 'patch')
-    lookup_field = 'username'
-    pagination_class = None
-
-
-class UserAPIView(APIView):
-    permission_classes = [IsAuthenticate]
-
-    def get(self, request):
-        username = request.user.username
-        UserObj = User.objects.get(username=username)
-        serializer = UserAPIViewSerializer(UserObj)
+    @action(detail=False, methods=['GET', 'PATCH'],
+            permission_classes=[IsAuthenticated, ])
+    def me(self, request):
+        user = self.request.user
+        serializer = self.get_serializer(
+            user,
+            data=request.data,
+            partial=True
+        )
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
         return Response(serializer.data)
-
-    def patch(self, request):
-        username = request.user.username
-        UserObj = User.objects.get(username=username)
-        serializer = UserAPIViewSerializer(UserObj,
-                                           data=request.data,
-                                           partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data,
-                            status=status.HTTP_200_OK)
-        return Response(status=status.HTTP_400_BAD_REQUEST)
-

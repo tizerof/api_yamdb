@@ -14,13 +14,13 @@ from .permissions import (IsActiveUserPermission, IsAdmin, IsAdminOrReadOnly,
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, ReviewSerializer, TitleSerializer)
 
-PERMISSION_CLASSES = (IsAuthenticatedOrReadOnly, IsOwner, IsAdmin, IsModerator)
+REVIEW_COMMENT_PERMISSION = (IsOwner | IsModerator | IsAdmin,)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
     """Класс взаимодействия с моделью Review. """
     serializer_class = ReviewSerializer
-    permission_classes = PERMISSION_CLASSES
+    permission_classes = REVIEW_COMMENT_PERMISSION
 
     def get_queryset(self):
         """Получение списка отзывов. """
@@ -35,7 +35,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = PERMISSION_CLASSES
+    permission_classes = REVIEW_COMMENT_PERMISSION
 
     def get_queryset(self):
         """Получение списка комментариев к отзыву. """

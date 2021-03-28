@@ -134,7 +134,7 @@ class UserAPIView(APIView):
     Возвращает данные поста пользователя при запросе к /users/me/
     Позволяет менять данные своего профиля
     """
-    permission_classes = [IsAuthenticate]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         username = request.user.username

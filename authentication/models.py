@@ -20,11 +20,12 @@ class User(AbstractUser):
     )
 
     username = models.CharField(max_length=50, unique=True,
-                                blank=False, null=False,
+                                blank=True, null=True,
                                 validators=[alphanumeric])
     email = models.EmailField(unique=True, blank=False, null=False)
     role = models.CharField(max_length=100, choices=Roles.choices, default=Roles.USER)
     bio = models.TextField(max_length=3000, blank=True, null=True)
+    password = models.CharField(max_length=200, blank=True, null=True)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']

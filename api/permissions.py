@@ -24,6 +24,17 @@ class IsAdmin(IsActiveUserPermission):
         return request.user.is_staff or request.user.role == User.Roles.ADMIN
 
 
+class IsAdminOrReadOnly(IsActiveUserPermission):
+
+    def has_permission(self, request, view):
+        return (request.method in SAFE_METHODS
+                or request.user
+                and request.user.is_authenticated
+                and request.user.is_active
+                and request.user.is_superuser
+                and request.user.role == User.Roles.ADMIN)
+
+
 class IsModerator(IsActiveUserPermission):
     def has_object_permission(self, request, view, obj):
         return (request.user.is_staff

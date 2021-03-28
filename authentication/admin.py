@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import UserConfirmation, User
+from .models import User, UserConfirmation
 
 
 class UserConfirmationAdmin(admin.ModelAdmin):

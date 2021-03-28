@@ -1,8 +1,8 @@
-from django.urls import path, include
+from django.urls import include, path
 from rest_framework.routers import DefaultRouter, Route, SimpleRouter
 
-from .views import (sendJWTViewSet, UsersViewSet,
-                    EmailConfirmationViewSet, SpecificUserViewSet, UserAPIView)
+from .views import (EmailConfirmationViewSet, SpecificUserViewSet, UserAPIView,
+                    UsersViewSet, sendJWTViewSet)
 
 
 class CustomUserRouter(SimpleRouter):

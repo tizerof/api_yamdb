@@ -1,16 +1,20 @@
-from django.shortcuts import render
+import csv
+import io
+import os
 from datetime import datetime
-import csv, io, os
-from django.shortcuts import render
-from django.contrib import messages
 
-from api.models import Category, Genre, Title
+from django.contrib import messages
+from django.shortcuts import render
+
+from api.models import Category, Genre, Review, Title
+from authentication.models import User
+
 
 def category_upload(request):
     template = 'category_upload.html'
 
     if request.method == 'GET':
-        return render(request,  template)
+        return render(request, template)
 
     csv_file = request.FILES['file']
 
@@ -21,7 +25,7 @@ def category_upload(request):
 
     io_string = io.StringIO(data_set)
     next(io_string)
-    
+
     for column in csv.reader(io_string, delimiter=',', quotechar='"'):
         if csv_file.name == 'category.csv':
             _, created = Category.objects.update_or_create(
@@ -36,15 +40,27 @@ def category_upload(request):
                 slug=column[2]
             )
         elif csv_file.name == 'titles.csv':
-            # os.system('clear')
-            # print(Category.objects.get(id=int(column[3])))
-            # print(column[3])
-            # input()
             _, created = Title.objects.update_or_create(
                 id=column[0],
                 name=column[1],
                 year=datetime.strptime(column[2], '%Y'),
                 category=Category.objects.get(id=int(column[3]))
             )
-    context= {}
+        elif csv_file.name == 'users.csv':
+            _, create = User.objects.update_or_create(
+                id=column[0],
+                username=column[1],
+                email=column[2],
+                role=column[3],
+            )
+        elif csv_file.name == 'review.csv':
+            _, created = Review.objects.update_or_create(
+                id=column[0],
+                title_id=column[1],
+                text=column[2],
+                author=User.objects.get(id=column[3]),
+                score=column[4],
+                pub_date=datetime.strptime(column[5][0:10], '%Y-%m-%d')
+            )
+    context = {}
     return render(request, template, context)

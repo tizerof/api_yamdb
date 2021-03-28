@@ -83,10 +83,7 @@ class TitleSerializer(serializers.ModelSerializer):
     """ Сериализатор модели Title. """
     genre = GenreSerializer(many=True, required=False, read_only=True)
     category = CategorySerializer(required=False, read_only=True)
-    rating = serializers.DecimalField(
-        max_digits=3,
-        decimal_places=1,
-        required=False
+    rating = serializers.IntegerField(required=False
     )
     year = serializers.DateField(
         format='%Y',

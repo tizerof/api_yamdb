@@ -25,15 +25,12 @@ class IsAdmin(IsActiveUserPermission):
                 or request.user.role == User.Roles.ADMIN)
 
 
-class IsAdminOrReadOnly(IsActiveUserPermission):
+class IsAdminOrReadOnlyCGT(IsActiveUserPermission):
 
     def has_permission(self, request, view):
         return (request.method in SAFE_METHODS
-                or request.user
-                and request.user.is_authenticated
-                and request.user.is_active
-                and request.user.is_superuser
-                and request.user.role == User.Roles.ADMIN)
+                or request.user.is_superuser
+        )
 
 
 class IsModerator(IsActiveUserPermission):

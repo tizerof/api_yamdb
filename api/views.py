@@ -5,12 +5,13 @@ from rest_framework import serializers, viewsets, exceptions
 from rest_framework.generics import get_object_or_404
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, AllowAny
+from rest_framework import exceptions
 
 from api.models import Category, Genre, Review, Title
 
 from .filters import CategoryFilterSet, GenreFilterSet, TitleFilterSet
-from .permissions import (IsActiveUserPermission, IsAdmin, IsAdminOrReadOnly,
-                          IsModerator, IsOwner,)
+from .permissions import (IsActiveUserPermission, IsAdmin,
+                          IsModerator, IsOwner, IsAdminOrReadOnlyCGT)
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, ReviewSerializer, TitleSerializer)
 
@@ -53,9 +54,35 @@ class CategoryViewSet(viewsets.ModelViewSet):
     serializer_class = CategorySerializer
     http_method_names = ['get', 'post', 'delete']
     pagination_class = PageNumberPagination
-    permission_classes = (IsAdminOrReadOnly,)
+    permission_classes = (IsAdminOrReadOnlyCGT,)
     lookup_field = 'slug'
     filterset_class = CategoryFilterSet
+
+    # def check_permissions(self, request):
+    #     """
+    #     Check if the request should be permitted.
+    #     Raises an appropriate exception if the request is not permitted.
+    #     """
+    #     if request.method == 'GET' and self.action == 'retrieve':
+    #         raise exceptions.MethodNotAllowed('Метод не разрешен')
+        
+    #     if request.method == 'POST' and not request.user.is_authenticated:
+    #         raise exceptions.NotAuthenticated('Пользователь не авторизован')
+        
+    #     if request.method == 'DELETE' and not request.user.is_authenticated:
+    #         raise exceptions.NotAuthenticated('Пользователь не авторизован')
+        
+    #     if request.method == 'POST' and not request.user.is_superuser:
+    #         raise exceptions.PermissionDenied('Действие запрещено')
+        
+    #     if request.method == 'DELETE' and not request.user.is_superuser and self.action == 'destroy':
+    #         raise exceptions.PermissionDenied('Действие запрещено')
+        
+    #     for permission in self.get_permissions():
+    #         if not permission.has_permission(request, self):
+    #             self.permission_denied(
+    #                 request, message=getattr(permission, 'message', None)
+    #             )
 
 
 class GenreViewSet(CategoryViewSet):
@@ -69,7 +96,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     serializer_class = TitleSerializer
     http_method_names = ['get', 'post', 'patch', 'delete']
     pagination_class = PageNumberPagination
-    permission_classes = (IsAdminOrReadOnly,)
+    permission_classes = (IsAdminOrReadOnlyCGT,)
     filterset_class = TitleFilterSet
     
     def prepare_category_and_genre(self):

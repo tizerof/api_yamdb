@@ -94,8 +94,7 @@ class sendJWTViewSet(mixins.CreateModelMixin,
 
 class UsersViewSet(viewsets.ModelViewSet):
     """
-    Возвразщает список всех пользователей,
-    создаёт нового пользователя
+    ViewSet для работы с моделью User
     """
     queryset = User.objects.all()
     serializer_class = UsersViewSetSerializer
@@ -115,3 +114,4 @@ class UsersViewSet(viewsets.ModelViewSet):
         )
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
+        return Response(serializer.data)

@@ -7,14 +7,14 @@ from django.core.mail import send_mail
 from rest_framework import viewsets, mixins, filters, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet
 
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import UserConfirmation, User
-from .permissions import IsAdmin, IsAuthenticate
+from .permissions import IsAdmin
 from .serializer import (UserJWTSerializer, UserConfirmationSerializer,
                          UsersViewSetSerializer, SpecificUserSerializer,
                          UserAPIViewSerializer)
@@ -131,8 +131,8 @@ class SpecificUserViewSet(viewsets.ModelViewSet):
 
 class UserAPIView(APIView):
     """
-    Возвращает данные аккаунта пользователя, сделавшего запрос
-    Позволяет менять данные своего аккаунта
+    Возвращает данные поста пользователя при запросе к /users/me/
+    Позволяет менять данные своего профиля
     """
     permission_classes = [IsAuthenticate]
 

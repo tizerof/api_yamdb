@@ -19,8 +19,3 @@ class IsAdmin(BasePermission):
 
         if request.user.is_staff or request.user.role == 'admin':
             return True
-
-
-class IsAuthenticate(BasePermission):
-    def has_permission(self, request, view):
-        return request.user.is_authenticated

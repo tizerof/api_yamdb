@@ -10,7 +10,8 @@ class User(AbstractUser):
         MODERATOR = 'moderator', _('moderator')
         ADMIN = 'admin', _('admin')
 
-    """ 
+
+    """
     Валидатор нужен чтобы в username не было символов вроде '@'
     которые не обработаются в /users/{username}/
     """

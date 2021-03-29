@@ -1,15 +1,14 @@
-import os
-
 from django.db.models import Avg
-from rest_framework.viewsets import GenericViewSet, ModelViewSet
+from rest_framework.filters import SearchFilter
 from rest_framework.generics import get_object_or_404
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.mixins import (CreateModelMixin, DestroyModelMixin,
                                    ListModelMixin)
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.viewsets import GenericViewSet, ModelViewSet
 
+from .filters import TitleFilterSet
 from .models import Category, Genre, Review, Title
-from .filters import CategoryFilterSet, GenreFilterSet, TitleFilterSet
-from .permissions import (IsAdmin, IsModerator, IsOwner, IsAdminOrReadOnlyCGT)
+from .permissions import IsAdmin, IsModerator, IsOwner
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, ReviewSerializer, TitleSerializer)
 
@@ -33,6 +32,7 @@ class ReviewViewSet(ModelViewSet):
 
 
 class CommentViewSet(ModelViewSet):
+    """Класс взаимодействия с моделью Comment. """
     serializer_class = CommentSerializer
     permission_classes = REVIEW_COMMENT_PERMISSION
 
@@ -49,71 +49,51 @@ class CommentViewSet(ModelViewSet):
 
 class CreateDelListViewset(CreateModelMixin, DestroyModelMixin,
                            ListModelMixin, GenericViewSet):
+    """Класс с доступом к операциям create, destroy и list. """
     pass
 
 
 class CategoryViewSet(CreateDelListViewset):
+    """Класс взаимодействия с моделью Category. """
     queryset = Category.objects.all().order_by('name')
     serializer_class = CategorySerializer
     permission_classes = (IsAdmin,)
     lookup_field = 'slug'
-    filterset_class = CategoryFilterSet
-
-    # def check_permissions(self, request):
-    #     """
-    #     Check if the request should be permitted.
-    #     Raises an appropriate exception if the request is not permitted.
-    #     """
-    #     if request.method == 'GET' and self.action == 'retrieve':
-    #         raise exceptions.MethodNotAllowed('Метод не разрешен')
-
-    #     if request.method == 'POST' and not request.user.is_authenticated:
-    #         raise exceptions.NotAuthenticated('Пользователь не авторизован')
-
-    #     if request.method == 'DELETE' and not request.user.is_authenticated:
-    #         raise exceptions.NotAuthenticated('Пользователь не авторизован')
-
-    #     if request.method == 'POST' and not request.user.is_superuser:
-    #         raise exceptions.PermissionDenied('Действие запрещено')
-
-    #     if request.method == 'DELETE' and not request.user.is_superuser and self.action == 'destroy':
-    #         raise exceptions.PermissionDenied('Действие запрещено')
-
-    #     for permission in self.get_permissions():
-    #         if not permission.has_permission(request, self):
-    #             self.permission_denied(
-    #                 request, message=getattr(permission, 'message', None)
-    #             )
+    filter_backends = (SearchFilter,)
+    search_fields = ('name',)
 
 
 class GenreViewSet(CreateDelListViewset):
+    """Класс взаимодействия с моделью Genre. """
     queryset = Genre.objects.all().order_by('name')
     serializer_class = GenreSerializer
-    filterset_class = GenreFilterSet
+    filter_backends = (SearchFilter,)
+    search_fields = ('name',)
     permission_classes = (IsAdmin,)
     lookup_field = 'slug'
 
 
 class TitleViewSet(ModelViewSet):
-    queryset = Title.objects.all().order_by(
-        'id').annotate(rating=Avg('reviews__score'))
+    """Класс взаимодействия с моделью Title. """
+    queryset = Title.objects.all().order_by('id').annotate(
+        rating=Avg('reviews__score'))
     serializer_class = TitleSerializer
     pagination_class = PageNumberPagination
-    permission_classes = (IsAdminOrReadOnlyCGT,)
+    permission_classes = (IsAdmin,)
     filterset_class = TitleFilterSet
 
     def prepare_category_and_genre(self):
+        """Проверка полей category и genre. """
         data = {}
         if self.request.data.get('category'):
             category_slug = self.request.data.get('category')
             assigned_category = Category.objects.get(slug=category_slug)
             data['category'] = assigned_category
         if self.request.data.get('genre'):
-            input_slug = self.request.data.get('genre')
-            input_slug = input_slug.replace(' ', '')
-            genre_slug_list = input_slug.split(',')
+            input_slug = self.request.data.getlist('genre')
+            print(self.request.data, ' - ', input_slug)
             assigned_genre_queryset = []
-            for genre_slug in genre_slug_list:
+            for genre_slug in input_slug:
                 try:
                     found_genre = Genre.objects.get(slug=genre_slug)
                 except Genre.DoesNotExist:
@@ -123,11 +103,13 @@ class TitleViewSet(ModelViewSet):
         return data
 
     def perform_create(self, serializer):
+        """Сохранение произведения в бд. """
         data = self.prepare_category_and_genre()
         serializer.is_valid()
         serializer.save(**data)
 
     def perform_update(self, serializer):
+        """Обновление данных произведения в бд. """
         data = self.prepare_category_and_genre()
         serializer.is_valid()
         serializer.save(**data)

@@ -1,10 +1,9 @@
-import os
 import re
 
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator, UniqueValidator
 
-from api.models import Category, Comment, Genre, Review, Title
+from .models import Category, Comment, Genre, Review, Title
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -79,11 +78,6 @@ class TitleSerializer(serializers.ModelSerializer):
     genre = GenreSerializer(many=True, required=False, read_only=True)
     category = CategorySerializer(required=False, read_only=True)
     rating = serializers.IntegerField(required=False)
-    year = serializers.DateField(
-        format='%Y',
-        input_formats=['%Y'],
-        required=False
-    )
     description = serializers.CharField(required=False)
     name = serializers.CharField(
         validators=[UniqueValidator(queryset=Title.objects.all())]

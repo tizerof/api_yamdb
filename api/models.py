@@ -25,7 +25,7 @@ class Genre(models.Model):
 class Title(models.Model):
     """Модель произведений."""
     name = models.CharField(max_length=50)
-    year = models.DateField(blank=True, null=True)
+    year = models.IntegerField(blank=True, null=True)
     category = models.ForeignKey(
         Category,
         blank=True,

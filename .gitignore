@@ -26,6 +26,7 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+**/sent_emails/*
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -148,3 +149,7 @@ dmypy.json
 # папки со статикой и медиа
 media/
 
+notes.txt
+addcsv.py
+
+.flake8

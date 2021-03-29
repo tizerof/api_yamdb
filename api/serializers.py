@@ -60,12 +60,7 @@ class CategorySerializer(serializers.ModelSerializer):
         ]
 
 
-class GenreSerializer(CategorySerializer):
-    """ Сериализатор модели Genre. """
-    slug = serializers.SlugField(
-        required=False,
-        validators=[UniqueValidator(queryset=Genre.objects.all())]
-    )
+class GenreSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Genre
@@ -83,8 +78,7 @@ class TitleSerializer(serializers.ModelSerializer):
     """ Сериализатор модели Title. """
     genre = GenreSerializer(many=True, required=False, read_only=True)
     category = CategorySerializer(required=False, read_only=True)
-    rating = serializers.IntegerField(required=False
-    )
+    rating = serializers.IntegerField(required=False)
     year = serializers.DateField(
         format='%Y',
         input_formats=['%Y'],

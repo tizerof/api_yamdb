@@ -1,24 +1,22 @@
 import os
 
 from django.db.models import Avg
-from rest_framework import serializers, viewsets, exceptions
+from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from rest_framework.generics import get_object_or_404
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import IsAuthenticatedOrReadOnly, AllowAny
-from rest_framework import exceptions
+from rest_framework.mixins import (CreateModelMixin, DestroyModelMixin,
+                                   ListModelMixin)
 
-from api.models import Category, Genre, Review, Title
-
+from .models import Category, Genre, Review, Title
 from .filters import CategoryFilterSet, GenreFilterSet, TitleFilterSet
-from .permissions import (IsActiveUserPermission, IsAdmin,
-                          IsModerator, IsOwner, IsAdminOrReadOnlyCGT)
+from .permissions import (IsAdmin, IsModerator, IsOwner, IsAdminOrReadOnlyCGT)
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, ReviewSerializer, TitleSerializer)
 
 REVIEW_COMMENT_PERMISSION = (IsOwner | IsModerator | IsAdmin,)
 
 
-class ReviewViewSet(viewsets.ModelViewSet):
+class ReviewViewSet(ModelViewSet):
     """Класс взаимодействия с моделью Review. """
     serializer_class = ReviewSerializer
     permission_classes = REVIEW_COMMENT_PERMISSION
@@ -34,7 +32,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user, title=title)
 
 
-class CommentViewSet(viewsets.ModelViewSet):
+class CommentViewSet(ModelViewSet):
     serializer_class = CommentSerializer
     permission_classes = REVIEW_COMMENT_PERMISSION
 
@@ -49,12 +47,15 @@ class CommentViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user, review=review)
 
 
-class CategoryViewSet(viewsets.ModelViewSet):
+class CreateDelListViewset(CreateModelMixin, DestroyModelMixin,
+                           ListModelMixin, GenericViewSet):
+    pass
+
+
+class CategoryViewSet(CreateDelListViewset):
     queryset = Category.objects.all().order_by('name')
     serializer_class = CategorySerializer
-    http_method_names = ['get', 'post', 'delete']
-    pagination_class = PageNumberPagination
-    permission_classes = (IsAdminOrReadOnlyCGT,)
+    permission_classes = (IsAdmin,)
     lookup_field = 'slug'
     filterset_class = CategoryFilterSet
 
@@ -65,19 +66,19 @@ class CategoryViewSet(viewsets.ModelViewSet):
     #     """
     #     if request.method == 'GET' and self.action == 'retrieve':
     #         raise exceptions.MethodNotAllowed('Метод не разрешен')
-        
+
     #     if request.method == 'POST' and not request.user.is_authenticated:
     #         raise exceptions.NotAuthenticated('Пользователь не авторизован')
-        
+
     #     if request.method == 'DELETE' and not request.user.is_authenticated:
     #         raise exceptions.NotAuthenticated('Пользователь не авторизован')
-        
+
     #     if request.method == 'POST' and not request.user.is_superuser:
     #         raise exceptions.PermissionDenied('Действие запрещено')
-        
+
     #     if request.method == 'DELETE' and not request.user.is_superuser and self.action == 'destroy':
     #         raise exceptions.PermissionDenied('Действие запрещено')
-        
+
     #     for permission in self.get_permissions():
     #         if not permission.has_permission(request, self):
     #             self.permission_denied(
@@ -85,20 +86,22 @@ class CategoryViewSet(viewsets.ModelViewSet):
     #             )
 
 
-class GenreViewSet(CategoryViewSet):
+class GenreViewSet(CreateDelListViewset):
     queryset = Genre.objects.all().order_by('name')
     serializer_class = GenreSerializer
     filterset_class = GenreFilterSet
+    permission_classes = (IsAdmin,)
+    lookup_field = 'slug'
 
 
-class TitleViewSet(viewsets.ModelViewSet):
-    queryset = Title.objects.all().order_by('id').annotate(rating=Avg('reviews__score'))
+class TitleViewSet(ModelViewSet):
+    queryset = Title.objects.all().order_by(
+        'id').annotate(rating=Avg('reviews__score'))
     serializer_class = TitleSerializer
-    http_method_names = ['get', 'post', 'patch', 'delete']
     pagination_class = PageNumberPagination
     permission_classes = (IsAdminOrReadOnlyCGT,)
     filterset_class = TitleFilterSet
-    
+
     def prepare_category_and_genre(self):
         data = {}
         if self.request.data.get('category'):

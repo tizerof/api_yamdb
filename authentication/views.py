@@ -1,20 +1,17 @@
 import uuid
 
-from django.shortcuts import get_object_or_404
 from django.core.mail import send_mail
-
-from rest_framework import viewsets, mixins, filters
+from rest_framework import filters, mixins, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
-from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
-
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .models import UserConfirmation, User
+from .models import User, UserConfirmation
 from .permissions import IsAdmin
-from .serializer import (UserJWTSerializer, UserConfirmationSerializer,
+from .serializer import (UserConfirmationSerializer, UserJWTSerializer,
                          UsersViewSetSerializer)
 
 

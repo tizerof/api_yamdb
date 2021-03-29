@@ -156,3 +156,5 @@ media/
 */migrations/
 notes.txt
 addcsv.py
+
+.flake8

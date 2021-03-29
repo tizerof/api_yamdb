@@ -1,6 +1,6 @@
+from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
 from django.db import models
-from django.contrib.auth.models import AbstractUser
 from django.utils.translation import gettext_lazy as _
 
 
@@ -23,7 +23,8 @@ class User(AbstractUser):
                                 blank=True, null=True,
                                 validators=[alphanumeric])
     email = models.EmailField(unique=True, blank=False, null=False)
-    role = models.CharField(max_length=100, choices=Roles.choices, default=Roles.USER)
+    role = models.CharField(
+        max_length=100, choices=Roles.choices, default=Roles.USER)
     bio = models.TextField(max_length=3000, blank=True, null=True)
     password = models.CharField(max_length=200, blank=True, null=True)
 
@@ -35,5 +36,7 @@ class UserConfirmation(models.Model):
     """
     Хранит данные о подтверждении email
     """
-    email = models.EmailField(max_length=254, blank=False, null=False, unique=True)
-    confirmation_code = models.CharField(max_length=1000, blank=True, null=True)
+    email = models.EmailField(
+        max_length=254, blank=False, null=False, unique=True)
+    confirmation_code = models.CharField(
+        max_length=1000, blank=True, null=True)

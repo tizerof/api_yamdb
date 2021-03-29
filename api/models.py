@@ -15,8 +15,8 @@ class Category(models.Model):
 
 class Genre(models.Model):
     """Модель жанров."""
-    name = models.CharField(max_length=30)
-    slug = models.SlugField(max_length=30)
+    name = models.CharField(max_length=30, unique=True,)
+    slug = models.SlugField(max_length=30, unique=True,)
 
     def __str__(self):
         return self.name
@@ -25,7 +25,7 @@ class Genre(models.Model):
 class Title(models.Model):
     """Модель произведений."""
     name = models.CharField(max_length=50)
-    year = models.DateField(blank=True, null=True)
+    year = models.IntegerField(blank=True, null=True)
     category = models.ForeignKey(
         Category,
         blank=True,
@@ -33,8 +33,9 @@ class Title(models.Model):
         default=None,
         on_delete=models.SET_NULL
     )
-    author = models.CharField(max_length=50)
-    description = models.TextField(max_length=200)
+    genre = models.ManyToManyField(Genre)
+    author = models.CharField(max_length=50, blank=True, null=True)
+    description = models.TextField(max_length=200, blank=True, null=True)
 
     def __str__(self):
         return self.name

@@ -1,6 +1,8 @@
 import uuid
 
 from django.core.mail import send_mail
+from django.shortcuts import get_object_or_404
+
 from rest_framework import filters, mixins, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
@@ -93,7 +95,7 @@ class UsersViewSet(viewsets.ModelViewSet):
     """
     ViewSet для работы с моделью User
     """
-    queryset = User.objects.all()
+    queryset = User.objects.all().order_by('id')
     serializer_class = UsersViewSetSerializer
     permission_classes = [IsAdmin, ]
     filter_backends = [filters.SearchFilter]

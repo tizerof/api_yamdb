@@ -1,6 +1,5 @@
 import csv
 import io
-import os
 from datetime import datetime
 
 from django.contrib import messages

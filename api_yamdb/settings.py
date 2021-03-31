@@ -25,7 +25,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'api',
-    'csvfile',
     'authentication',
     'rest_framework',
     'django_filters',

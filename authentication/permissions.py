@@ -8,7 +8,8 @@ class IsAdminOrReadOnly(BasePermission):
         if request.method in SAFE_METHODS:
             return request.user.is_authenticated
 
-        return request.user.is_superuser or request.user.role == User.Roles.ADMIN
+        return request.user.is_superuser or \
+               request.user.role == User.Roles.ADMIN
 
 
 class IsAdmin(BasePermission):
@@ -16,4 +17,5 @@ class IsAdmin(BasePermission):
         if request.user.is_anonymous:
             return False
 
-        return request.user.is_superuser or request.user.role == User.Roles.ADMIN
+        return request.user.is_superuser or \
+               request.user.role == User.Roles.ADMIN

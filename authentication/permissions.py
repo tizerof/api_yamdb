@@ -9,7 +9,7 @@ class IsAdminOrReadOnly(BasePermission):
             return request.user.is_authenticated
 
         return request.user.is_superuser or \
-               request.user.role == User.Roles.ADMIN
+            request.user.role == User.Roles.ADMIN
 
 
 class IsAdmin(BasePermission):
@@ -18,4 +18,4 @@ class IsAdmin(BasePermission):
             return False
 
         return request.user.is_superuser or \
-               request.user.role == User.Roles.ADMIN
+            request.user.role == User.Roles.ADMIN

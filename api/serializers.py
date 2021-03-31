@@ -49,7 +49,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Category
-        fields = ('name', 'slug')
+        exclude = ('id',)
         lookup_field = 'slug'
         validators = [
             UniqueTogetherValidator(
@@ -63,7 +63,7 @@ class GenreSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Genre
-        fields = ('name', 'slug')
+        exclude = ('id',)
         lookup_field = 'slug'
         validators = [
             UniqueTogetherValidator(
@@ -73,24 +73,22 @@ class GenreSerializer(serializers.ModelSerializer):
         ]
 
 
-class TitleSerializer(serializers.ModelSerializer):
-    """ Сериализатор модели Title. """
-    genre = GenreSerializer(many=True, required=False, read_only=True)
-    category = CategorySerializer(required=False, read_only=True)
-    rating = serializers.IntegerField(required=False)
-    description = serializers.CharField(required=False)
-    name = serializers.CharField(
-        validators=[UniqueValidator(queryset=Title.objects.all())]
-    )
+class TitleViewSerializer(serializers.ModelSerializer):
+    genre = GenreSerializer(many=True, read_only=True)
+    category = CategorySerializer(read_only=True)
+    rating = serializers.FloatField()
 
     class Meta:
+        fields = '__all__'
         model = Title
-        fields = (
-            'id',
-            'name',
-            'year',
-            'rating',
-            'description',
-            'genre',
-            'category'
-        )
+
+
+class TitlePostSerializer(serializers.ModelSerializer):
+    genre = serializers.SlugRelatedField(
+        slug_field='slug', many=True, queryset=Genre.objects.all())
+    category = serializers.SlugRelatedField(
+        slug_field='slug', queryset=Category.objects.all())
+
+    class Meta:
+        fields = '__all__'
+        model = Title

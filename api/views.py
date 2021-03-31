@@ -4,13 +4,15 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.mixins import (CreateModelMixin, DestroyModelMixin,
                                    ListModelMixin)
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import SAFE_METHODS
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 
 from .filters import TitleFilterSet
 from .models import Category, Genre, Review, Title
 from .permissions import IsAdmin, IsModerator, IsOwner
 from .serializers import (CategorySerializer, CommentSerializer,
-                          GenreSerializer, ReviewSerializer, TitleSerializer)
+                          GenreSerializer, ReviewSerializer,
+                          TitlePostSerializer, TitleViewSerializer)
 
 REVIEW_COMMENT_PERMISSION = (IsOwner | IsModerator | IsAdmin,)
 
@@ -55,7 +57,7 @@ class CreateDelListViewset(CreateModelMixin, DestroyModelMixin,
 
 class CategoryViewSet(CreateDelListViewset):
     """Класс взаимодействия с моделью Category. """
-    queryset = Category.objects.all().order_by('name')
+    queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = (IsAdmin,)
     lookup_field = 'slug'
@@ -65,7 +67,7 @@ class CategoryViewSet(CreateDelListViewset):
 
 class GenreViewSet(CreateDelListViewset):
     """Класс взаимодействия с моделью Genre. """
-    queryset = Genre.objects.all().order_by('name')
+    queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     filter_backends = (SearchFilter,)
     search_fields = ('name',)
@@ -75,41 +77,13 @@ class GenreViewSet(CreateDelListViewset):
 
 class TitleViewSet(ModelViewSet):
     """Класс взаимодействия с моделью Title. """
-    queryset = Title.objects.all().order_by('id').annotate(
-        rating=Avg('reviews__score'))
-    serializer_class = TitleSerializer
+    queryset = Title.objects.all().annotate(
+        rating=Avg('reviews__score')).order_by('name')
     pagination_class = PageNumberPagination
     permission_classes = (IsAdmin,)
     filterset_class = TitleFilterSet
 
-    def prepare_category_and_genre(self):
-        """Проверка полей category и genre. """
-        data = {}
-        if self.request.data.get('category'):
-            category_slug = self.request.data.get('category')
-            assigned_category = Category.objects.get(slug=category_slug)
-            data['category'] = assigned_category
-        if self.request.data.get('genre'):
-            input_slug = self.request.data.getlist('genre')
-            print(self.request.data, ' - ', input_slug)
-            assigned_genre_queryset = []
-            for genre_slug in input_slug:
-                try:
-                    found_genre = Genre.objects.get(slug=genre_slug)
-                except Genre.DoesNotExist:
-                    found_genre = None
-                assigned_genre_queryset.append(found_genre)
-            data['genre'] = assigned_genre_queryset
-        return data
-
-    def perform_create(self, serializer):
-        """Сохранение произведения в бд. """
-        data = self.prepare_category_and_genre()
-        serializer.is_valid()
-        serializer.save(**data)
-
-    def perform_update(self, serializer):
-        """Обновление данных произведения в бд. """
-        data = self.prepare_category_and_genre()
-        serializer.is_valid()
-        serializer.save(**data)
+    def get_serializer_class(self):
+        if self.request.method in SAFE_METHODS:
+            return TitleViewSerializer
+        return TitlePostSerializer

@@ -17,16 +17,15 @@ class UserJWTSerializer(serializers.ModelSerializer):
                   'bio', 'first_name', 'last_name')
         model = User
 
-    def is_valid(self, raise_exception=False):
+    def validate_code(self, raise_exception=False):
         email = self.context['request'].POST.get('email')
-        UserOBJ = get_object_or_404(UserConfirmation, email=email)
+        user_obj = get_object_or_404(UserConfirmation, email=email)
         confirmation_code = self.context['request'].data['confirmation_code']
-        if UserOBJ.confirmation_code != confirmation_code:
+        if user_obj.confirmation_code != confirmation_code:
             raise ValidationError('Код подтверждения неверен')
 
-        valid = super(UserJWTSerializer, self
-                      ).is_valid(raise_exception=raise_exception)
-        UserOBJ.delete()
+        valid = super().is_valid(raise_exception=raise_exception)
+        user_obj.delete()
         return valid
 
 

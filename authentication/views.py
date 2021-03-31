@@ -2,7 +2,6 @@ import uuid
 
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
-
 from rest_framework import filters, mixins, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
@@ -10,6 +9,8 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
+
+from api_yamdb.settings import ADMIN_EMAIL
 
 from .models import User, UserConfirmation
 from .permissions import IsAdmin
@@ -30,9 +31,7 @@ class EmailConfirmationViewSet(mixins.CreateModelMixin,
     permission_classes = [AllowAny, ]
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
+        super().create(request, *args, **kwargs)
         return Response('Проверьте вашу почту')
 
     def perform_create(self, serializer):
@@ -41,13 +40,13 @@ class EmailConfirmationViewSet(mixins.CreateModelMixin,
         send_mail(
             'authentication',
             f'{code}',
-            'from@example.com',
-            [f'{self.request.POST.get("email")}'],
+            ADMIN_EMAIL,
+            [f'{serializer.validated_data.get("email")}'],
             fail_silently=False,
         )
 
 
-class sendJWTViewSet(mixins.CreateModelMixin,
+class SendJWTViewSet(mixins.CreateModelMixin,
                      GenericViewSet):
     """
     В случае если к почте пользователя не привязан ни один аккаунт,
@@ -63,19 +62,22 @@ class sendJWTViewSet(mixins.CreateModelMixin,
         request_email = request.POST.get('email')
         request_code = request.POST.get('confirmation_code')
 
-        """ Если пользователь регистрируется впервые, создаем ему аккаунт """
+        # Если пользователь регистрируется впервые, создаем ему аккаунт
         try:
             user = User.objects.get(email=request_email)
         except User.DoesNotExist:
             serializer = self.get_serializer(data=request.data)
-            serializer.is_valid(raise_exception=True)
+            serializer.validate_code()
             self.perform_create(serializer)
-            user = get_object_or_404(User, email=request_email)
+            user = get_object_or_404(
+                User, email=serializer.validated_data.get("email")
+            )
             refresh = RefreshToken.for_user(user)
             return Response({
                 'access': str(refresh.access_token),
             })
 
+        # Пользователь не зарегистрирован, обновляем ему токен:
         try:
             confirm = UserConfirmation.objects.get(email=request_email)
         except UserConfirmation.DoesNotExist:

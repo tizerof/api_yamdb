@@ -67,7 +67,7 @@ class sendJWTViewSet(mixins.CreateModelMixin,
             user = User.objects.get(email=request_email)
         except User.DoesNotExist:
             serializer = self.get_serializer(data=request.data)
-            serializer.is_valid(raise_exception=True)
+            serializer.validate_code()
             self.perform_create(serializer)
             user = get_object_or_404(User, email=request_email)
             refresh = RefreshToken.for_user(user)

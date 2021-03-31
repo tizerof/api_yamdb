@@ -11,6 +11,7 @@ from rest_framework.viewsets import GenericViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from api_yamdb.settings import ADMIN_EMAIL
+
 from .models import User, UserConfirmation
 from .permissions import IsAdmin
 from .serializer import (UserConfirmationSerializer, UserJWTSerializer,

@@ -59,8 +59,12 @@ class SendJWTViewSet(mixins.CreateModelMixin,
     permission_classes = [AllowAny, ]
 
     def create(self, request, *args, **kwargs):
-        request_email = request.POST.get('email')
-        request_code = request.POST.get('confirmation_code')
+        request_email = UserJWTSerializer.email_validation(
+            request.POST.get('email')
+        )
+        request_code = UserJWTSerializer.confirmation_validation(
+            request.POST.get('confirmation_code')
+        )
 
         # Если пользователь регистрируется впервые, создаем ему аккаунт
         try:

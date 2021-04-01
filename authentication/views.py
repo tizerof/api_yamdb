@@ -1,10 +1,9 @@
+import re
 import uuid
 
 from django.core.mail import send_mail
-from django.shortcuts import get_object_or_404
 from rest_framework import filters, mixins, viewsets
 from rest_framework.decorators import action
-from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
@@ -49,52 +48,26 @@ class EmailConfirmationViewSet(mixins.CreateModelMixin,
 class SendJWTViewSet(mixins.CreateModelMixin,
                      GenericViewSet):
     """
-    В случае если к почте пользователя не привязан ни один аккаунт,
-    создаёт новый, даёт токен для него и удаляет объект UserConfirmation.
-    Если аккаунт уже имеется, то проверяет confirmation_code и
-    обновляет токен для аккаунта, на который зарегистрирована почта.
+    Создаёт новый аккаунт, даёт токен для него и удаляет
+    объект UserConfirmation.
     """
     queryset = User.objects.all()
     serializer_class = UserJWTSerializer
     permission_classes = [AllowAny, ]
 
     def create(self, request, *args, **kwargs):
-        request_email = UserJWTSerializer.email_validation(
-            request.POST.get('email')
-        )
-        request_code = UserJWTSerializer.confirmation_validation(
-            request.POST.get('confirmation_code')
-        )
-
-        # Если пользователь регистрируется впервые, создаем ему аккаунт
-        try:
-            user = User.objects.get(email=request_email)
-        except User.DoesNotExist:
-            serializer = self.get_serializer(data=request.data)
-            serializer.validate_code()
-            self.perform_create(serializer)
-            user = get_object_or_404(
-                User, email=serializer.validated_data.get("email")
-            )
-            refresh = RefreshToken.for_user(user)
-            return Response({
-                'access': str(refresh.access_token),
-            })
-
-        # Пользователь не зарегистрирован, обновляем ему токен:
-        try:
-            confirm = UserConfirmation.objects.get(email=request_email)
-        except UserConfirmation.DoesNotExist:
-            raise ValidationError('Код подтверждения неверен')
-
-        if confirm.confirmation_code != request_code:
-            raise ValidationError('Код подтверждения неверен')
-
-        confirm.delete()
+        serializer = self.get_serializer(data=request.data)
+        data = serializer.validate_confirmation(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = data.get('email')
+        self.perform_create(serializer, email)
+        user = User.objects.filter(email=email).first()
         refresh = RefreshToken.for_user(user)
-        return Response({
-            'access': str(refresh.access_token),
-        })
+        return Response({'access': str(refresh.access_token), })
+
+    def perform_create(self, serializer, email):
+        default_username = re.sub('[@.!?#]', '', email)
+        serializer.save(username=default_username)
 
 
 class UsersViewSet(viewsets.ModelViewSet):
